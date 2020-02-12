@@ -1,0 +1,25 @@
+version: 2.1
+workflows:
+  main:
+    jobs:
+      - test-functions
+jobs:
+  test-functions:
+    docker:
+      - image: circleci/node:12
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "increase-of-kirby/package.json" }}
+            - v1-dependencies-
+      - run: cd increase-of-kirby; npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "increase-of-kirby/package.json" }}
+
+      - run: cd increase-of-kirby; npm run lint
+      - run: cd increase-of-kirby; echo ${ENV} > ~/.env
+      - run: cd increase-of-kirby; echo 'npm run test'
