@@ -1,27 +1,35 @@
-// import { APIGatewayProxyEvent } from 'aws-lambda'
+import { APIGatewayProxyEvent } from 'aws-lambda'
 
 import { SlackClient } from './slack'
-// import { Message } from './types'
+import { Message } from './types'
 import { getVariable } from './util'
 require('dotenv').config()
+
+export async function executeSF(event: APIGatewayProxyEvent): Promise<any> {
+  const message: Message = event.body && JSON.parse(event.body)
+  console.log(message)
+
+  const request = require('request') // eslint-disable-line
+  const dataString = `{"input": "{}","stateMachineArn": "${getVariable('SF_ARN')}"}`
+  const options = {
+    url: getVariable('SF_PATH'),
+    body: dataString,
+  }
+  function callback(error: any, response: any, body: any) {
+    if (!error && response.statusCode == 200) {
+      console.log(body)
+    }
+  }
+
+  request.post(options, callback)
+  return {
+    statusCode: 200,
+  }
+}
 
 export async function invoke(): Promise<any> {
   const choices = ['onePoyo', 'manyPoyos']
   const choice = choices[Math.floor(Math.random() * choices.length)]
-
-  // console.log(event)
-  // // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  // const message: Message = JSON.parse(event.body!)
-  // if (message.challenge) {
-  //   console.log('Slack App Subscription Verification')
-  //   return {
-  //     statusCode: 200,
-  //     body: JSON.stringify(event.body),
-  //   }
-  // }
-  // if (excludeEvent(message, event)) {
-  //   return { statusCode: 200, poyo: 1 }
-  // }
   return { statusCode: 200, choice }
 }
 
