@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent } from 'aws-lambda'
 
 import { SlackClient } from './slack'
 import { Message, Poyo } from './types'
-import { getVariable } from './util'
+import { getVariable, poyoText } from './util'
 require('dotenv').config()
 
 const token = getVariable('TOKEN')
@@ -40,14 +40,9 @@ export async function poyo(event: Poyo): Promise<any> {
   console.log(event)
   const poyoCount = event.results ? event.results.poyoCount : event.poyoCount
 
-  let text = ':kirby:'
-  for (let i = 0; i < poyoCount; i++) {
-    text = text + ':kirby:'
-  }
-
   await slackClient.postMessage({
     channel: getVariable('CHANNEL_ID_SANDBOX'),
-    text,
+    text: poyoText(poyoCount),
     username: 'kirby',
   })
   return { statusCode: 200, poyoCount: poyoCount + 1 }
