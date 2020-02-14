@@ -1,9 +1,12 @@
 import { APIGatewayProxyEvent } from 'aws-lambda'
 
 import { SlackClient } from './slack'
-import { Message } from './types'
+import { Message, Poyo } from './types'
 import { getVariable } from './util'
 require('dotenv').config()
+
+const token = getVariable('TOKEN')
+const slackClient = new SlackClient(token)
 
 export async function executeSF(event: APIGatewayProxyEvent): Promise<any> {
   const message: Message = event.body && JSON.parse(event.body)
@@ -30,25 +33,27 @@ export async function executeSF(event: APIGatewayProxyEvent): Promise<any> {
 export async function invoke(): Promise<any> {
   const choices = ['onePoyo', 'manyPoyos']
   const choice = choices[Math.floor(Math.random() * choices.length)]
-  return { statusCode: 200, choice }
+  return { statusCode: 200, choice, poyoCount: 0 }
 }
 
-export async function poyo(): Promise<any> {
-  const token = getVariable('TOKEN')
-  const slackClient = new SlackClient(token)
+export async function poyo(event: Poyo): Promise<any> {
+  console.log(event)
+  const poyoCount = event.results ? event.results.poyoCount : event.poyoCount
+
+  let text = ':kirby:'
+  for (let i = 0; i < poyoCount; i++) {
+    text = text + ':kirby:'
+  }
 
   await slackClient.postMessage({
     channel: getVariable('CHANNEL_ID_SANDBOX'),
-    text: ':kirby:',
+    text,
     username: 'kirby',
   })
-  return { statusCode: 200 }
+  return { statusCode: 200, poyoCount: poyoCount + 1 }
 }
 
 export async function errorNotification(): Promise<any> {
-  const token = getVariable('TOKEN')
-  const slackClient = new SlackClient(token)
-
   await slackClient.postMessage({
     channel: getVariable('CHANNEL_ID_SANDBOX'),
     text: '失敗したよ',

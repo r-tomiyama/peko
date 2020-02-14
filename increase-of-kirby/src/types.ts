@@ -23,3 +23,13 @@ export interface Message {
   isBase64Encoded: boolean
   challenge?: string // for verification
 }
+
+export interface Poyo {
+  statusCode: number
+  choice: 'onePoyo' | 'manyPoyos'
+  poyoCount: number
+  results?: {
+    statusCode: number
+    poyoCount: number
+  }
+}
